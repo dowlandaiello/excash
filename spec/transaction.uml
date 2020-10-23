@@ -1,0 +1,15 @@
+@startuml
+
+entity "Alice Quorum"
+entity Network
+
+Alice -> Network: Proposal: +$10, Bob
+Network -> "Alice Quorum": Query: Alice balance
+"Alice Quorum" -> Alice: Query: Alice balance
+"Alice Quorum" -> Bob: Query: Alice balance
+Alice --> "Alice Quorum": Alice Balance ($10)
+Bob --> "Alice Quorum": Alice balance ($10)
+"Alice Quorum" --> Network: Alice balance ($10)
+Network --> Bob: $10
+
+@enduml
