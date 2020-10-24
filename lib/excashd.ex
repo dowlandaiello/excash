@@ -17,7 +17,7 @@ defmodule Excashd do
       {:n_shards, 512}
     ]
 
-    opts = elem(OptionParser.parse(args, options), 0) |> Keyword.merge(defaults)
+    opts = Keyword.merge(defaults, elem(OptionParser.parse(args, options), 0))
     cfg_file = opts[:datadir] <> "/network.json"
 
     # Warn the user if the config is malformed
@@ -30,7 +30,7 @@ defmodule Excashd do
 
         # See defaults being applied here in net/config.ex
         cfg ->
-          safe_cfg = Map.merge(cfg, %Net.Config{})
+          safe_cfg = Map.merge(%Net.Config{}, cfg)
 
           Logger.info("starting network supervisor...")
 
