@@ -12,7 +12,14 @@ defmodule Net.Listener.Tcp do
 
   def init(port) do
     # Start listening
-    {:ok, socket} = :gen_tcp.listen(port, [:binary, packet: :line, active: false, reuseaddr: true])
+    {:ok, socket} =
+      :gen_tcp.listen(port, [
+        :binary,
+        packet: :line,
+        active: false,
+        reuseaddr: true
+      ])
+
     Logger.info("accepting connections via TCP:#{port}")
 
     accept_conn(socket)
