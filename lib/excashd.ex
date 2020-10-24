@@ -29,6 +29,9 @@ defmodule Excashd do
         # See defaults being applied here in net/config.ex
         cfg ->
           safe_cfg = Map.merge(cfg, %Net.Config{})
+
+          # Start the node supervisor
+          {:ok, sup} = Net.Supervisor.start_link([])
       end
     rescue
       Poison.DecodeError ->
