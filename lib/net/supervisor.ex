@@ -5,6 +5,7 @@ defmodule Net.Supervisor do
   """
 
   use Supervisor
+  require Logger
 
   def start_link(opts) do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
@@ -18,6 +19,7 @@ defmodule Net.Supervisor do
 
     # Spawn a worker process to serve each shard, where each shard is a process
     # with an id of Shard${i}
+    Logger.info("spawning #{opts[:n_shards]} shard workers...")
     children =
       Enum.reduce(
         0..opts[:n_shards],

@@ -7,7 +7,7 @@ defmodule Net.Config do
   @derive [Poison.Decoder]
   defstruct net_name: "main",
             bootstrap_nodes: [
-              "exnode.dowlandaiello.com"
+              {addr: "exnode.dowlandaiello.com", port: 22565},
             ],
             n_committees: 512,
             slot_time_ms: 1024
