@@ -3,14 +3,14 @@ defmodule Net.Listener.Tcp do
   A process that listens on a given TCP port for connections from its peers.
   """
 
-  use GenServer
+  use Task
   require Logger
 
-  def start_link(state) do
-    GenServer.start_link(__MODULE__, state, name: __MODULE__)
+  def start_link(port) do
+    Task.start_link(fn -> run(port) end)
   end
 
-  def init(port) do
+  def run(port) do
     # Start listening
     {:ok, socket} =
       :gen_tcp.listen(port, [
@@ -20,10 +20,8 @@ defmodule Net.Listener.Tcp do
         reuseaddr: true
       ])
 
-    Logger.info("accepting connections via TCP:#{port}")
+    Logger.info("accepting connections via TCP:#{port} (#{inspect(self())})")
     accept_conn(socket)
-
-    {:ok, socket}
   end
 
   defp accept_conn(socket) do
@@ -33,5 +31,9 @@ defmodule Net.Listener.Tcp do
   end
 
   defp handle_conn(conn) do
+    {:ok, [{addr, port}]} = :inet.peernames(conn)
+    Logger.info("connection opened to peer #{inspect addr}:#{port}")
+
+    Net.MsgBroker.start_child(conn)
   end
 end

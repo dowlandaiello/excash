@@ -14,17 +14,19 @@ defmodule Net.Supervisor do
   @impl true
   def init({opts, net_cfg}) do
     children = [
+      Net.MsgBroker,
       {Net.Listener.Tcp, opts[:port]}
     ]
 
     # Spawn a worker process to serve each shard, where each shard is a process
     # with an id of Shard${i}
     Logger.info("spawning #{opts[:n_shards]} shard workers...")
+
     children =
       Enum.reduce(
         0..opts[:n_shards],
         children,
-        &[Supervisor.child_spec({Db.Shard, {&1, {}}}, id: "Shard#{&1}") | &2]
+        &[Supervisor.child_spec({Db.Shard, {{}}}, id: "Shard#{&1}") | &2]
       )
 
     Supervisor.init(children, strategy: :one_for_one)

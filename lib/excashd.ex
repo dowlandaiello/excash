@@ -36,6 +36,16 @@ defmodule Excashd do
 
           # Start the node supervisor
           {:ok, sup} = Net.Supervisor.start_link({opts, safe_cfg})
+
+          Logger.info("connecting to network...")
+
+          Net.Discovery.Bootstrap.discover_extrinsic_peers(
+            safe_cfg.bootstrap_nodes
+          )
+
+          Logger.info("excashd core started successfully (#{inspect(sup)})!")
+
+          block()
       end
     rescue
       Poison.DecodeError ->
@@ -48,5 +58,9 @@ defmodule Excashd do
           "failed to parse configuration: make sure network.json contains valid JSON"
         )
     end
+  end
+
+  def block() do
+    Process.sleep(:infinity)
   end
 end

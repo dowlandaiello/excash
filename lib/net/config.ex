@@ -7,7 +7,7 @@ defmodule Net.Config do
   @derive [Poison.Decoder]
   defstruct net_name: "main",
             bootstrap_nodes: [
-              {addr: "exnode.dowlandaiello.com", port: 22565},
+              %{"addr" => "exnode.dowlandaiello.com", "port" => 22565}
             ],
             n_committees: 512,
             slot_time_ms: 1024
@@ -18,7 +18,7 @@ defmodule Net.Config do
   """
   def parse(f) do
     case res = File.read(f) do
-      {:ok, contents} -> Poison.decode!(contents)
+      {:ok, contents} -> Poison.decode!(contents, as: %__MODULE__{})
       _ -> res
     end
   end

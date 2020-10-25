@@ -6,7 +6,7 @@ defmodule Db.Shard do
 
   use GenServer
 
-  def start_link({i, state}) do
+  def start_link({state}) do
     GenServer.start_link(__MODULE__, state)
   end
 
