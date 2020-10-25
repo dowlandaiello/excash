@@ -23,7 +23,7 @@ defmodule Net.Discovery.Bootstrap do
 
         e ->
           Logger.warn(
-            "failed to connect to bootstrap node #{addr}:#{port} - skipping: #{inspect(e)}"
+            "failed to connect to bootstrap node #{addr}:#{port} - skipping: #{inspect e}"
           )
       end
     end)

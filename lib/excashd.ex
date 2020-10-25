@@ -1,20 +1,17 @@
 defmodule Excashd do
-  def main(args) do
-    require Logger
+  require Logger
 
-    # Available excashd flags are:
-    #
-    # --datadir (-d): the root directory of the daemon - where persistent data
-    #   will be kept and where the network.json file will be read from
+  def main(args) do
     options = [
-      switches: [datadir: :string, port: :integer, n_shards: :integer],
+      switches: [datadir: :string, port: :integer, n_shards: :integer, max_peers: :integer],
       aliases: [d: :datadir, p: :port, n: :n_shards]
     ]
 
     defaults = [
       {:datadir, File.cwd!() <> "/excash_data"},
       {:port, 25565},
-      {:n_shards, 512}
+      {:n_shards, 512},
+      {:max_peers, 64}
     ]
 
     opts = Keyword.merge(defaults, elem(OptionParser.parse(args, options), 0))
