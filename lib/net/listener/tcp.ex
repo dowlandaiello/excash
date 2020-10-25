@@ -21,7 +21,6 @@ defmodule Net.Listener.Tcp do
       ])
 
     Logger.info("accepting connections via TCP:#{port}")
-
     accept_conn(socket)
 
     {:ok, socket}

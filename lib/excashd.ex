@@ -35,7 +35,7 @@ defmodule Excashd do
           Logger.info("starting network supervisor...")
 
           # Start the node supervisor
-          {:ok, sup} = Net.Supervisor.start_link(opts)
+          {:ok, sup} = Net.Supervisor.start_link({opts, safe_cfg})
       end
     rescue
       Poison.DecodeError ->

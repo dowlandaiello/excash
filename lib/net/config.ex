@@ -7,10 +7,10 @@ defmodule Net.Config do
   @derive [Poison.Decoder]
   defstruct net_name: "main",
             bootstrap_nodes: [
-              "exnode.dowlandaiello.com",
-              n_committees: 512,
-              slot_time_ms: 1024
-            ]
+              "exnode.dowlandaiello.com"
+            ],
+            n_committees: 512,
+            slot_time_ms: 1024
 
   @doc """
   Generates a config from the file at the given path. If the file is unable
