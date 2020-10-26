@@ -12,7 +12,7 @@ defmodule Net.Supervisor do
   end
 
   @impl true
-  def init({opts, net_cfg}) do
+  def init({opts, _net_cfg}) do
     children = [
       Net.MsgBroker,
       Net.Discovery.PeerList,

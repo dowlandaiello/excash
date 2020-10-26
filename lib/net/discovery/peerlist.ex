@@ -11,27 +11,29 @@ defmodule Net.Discovery.PeerList do
 
   @impl true
   def init(_arg) do
-    {:ok, []}
+    {:ok, MapSet.new()}
   end
 
-  @doc """
-  Pushes a peer to the list of connected peers.
-  """
+  # Pushes a peer to the list of connected peers.
   @impl true
   def handle_call({:push, {addr, port}}, _from, peerlist) do
-    peerlist = [
-      addr_to_str(if(addr == "localhost", do: "127.0.0.1", else: addr), port)
-      | peerlist
-    ]
+    peerlist = MapSet.put(peerlist,
+      addr_to_str(if(addr == "localhost", do: "127.0.0.1", else: addr), port))
 
     {:reply, peerlist, peerlist}
   end
 
-  @doc """
-  Gets a list of connected peers.
-  """
+  # Gets a list of connected peers.
   @impl true
   def handle_call(:get, _from, peerlist) do
+    {:reply, peerlist, peerlist}
+  end
+
+  # Removes a peer from the peer list
+  @impl true
+  def handle_call({:remove, {addr, port}}, _from, peerlist) do
+    peerlist = MapSet.delete(peerlist, addr_to_str(if(addr == "localhost", do: "127.0.0.1", else: addr), port))
+
     {:reply, peerlist, peerlist}
   end
 

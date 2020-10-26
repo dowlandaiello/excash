@@ -46,9 +46,7 @@ defmodule Net.PeerWorker.Broadcaster do
     end
   end
 
-  @doc """
-  Requests an update peerlist from the peer handled by the worker.
-  """
+  # Requests an update peerlist from the peer handled by the worker.
   @impl true
   def handle_call({:request_peerlist, max_peers}, _from, conn) do
     case :gen_tcp.send(conn, "REQ_PS #{max_peers}\n") do
@@ -129,12 +127,16 @@ defmodule Net.PeerWorker.Listener do
             end)
             # Add each new node to the peerlist
             |> Enum.each(fn [remote_addr, remote_port] ->
-              GenServer.call(
-                Net.Discovery.PeerList,
-                {:push, {remote_addr, remote_port}}
-              )
+              Task.async fn ->
+                Net.MsgBroker.start_child(remote_addr, remote_port)
 
-              Logger.info("discovered new peer: #{remote_addr}:#{remote_port}")
+                GenServer.call(
+                  Net.Discovery.PeerList,
+                  {:push, {remote_addr, remote_port}}
+                )
+
+                Logger.info("discovered new peer: #{remote_addr}:#{remote_port}")
+              end
             end)
 
           _ ->
@@ -145,7 +147,11 @@ defmodule Net.PeerWorker.Listener do
         run(conn, {addr, port})
 
       {:error, :closed} ->
-        Logger.warn("connection closed by remote peer #{inspect(addr)}:#{port}")
+        Logger.warn("connection closed by remote peer #{inspect(addr)}:#{port}; removing from peer list")
+
+        GenServer.call(Net.Discovery.PeerList, {:remove, {addr, port}})
+
+        # Remove the peer from the peerlist
 
       e ->
         Logger.warn("#{inspect(e)}")
