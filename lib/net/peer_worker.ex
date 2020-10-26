@@ -6,7 +6,7 @@ defmodule Net.PeerWorker do
   use Supervisor
 
   def start_link(conn) do
-    Supervisor.start_link(__MODULE__, conn)
+    Supervisor.start_link(__MODULE__, conn, name: __MODULE__)
   end
 
   @impl true
@@ -27,7 +27,7 @@ defmodule Net.PeerWorker.Broadcaster do
   use GenServer
 
   def start_link(conn) do
-    GenServer.start_link(__MODULE__, conn)
+    GenServer.start_link(__MODULE__, conn, name: __MODULE__)
   end
 
   @impl true
@@ -50,6 +50,15 @@ defmodule Net.PeerWorker.Broadcaster do
   @impl true
   def handle_call({:request_peerlist, max_peers}, _from, conn) do
     case :gen_tcp.send(conn, "REQ_PS #{max_peers}\n") do
+      {error, reason} -> {:reply, {:err, {error, reason}}}
+      _ok -> {:reply, {:ok}, conn}
+    end
+  end
+
+  # Requests a list of addresses with records from the connected peers.
+  @impl true
+  def handle_call(:request_active_addresses, _from, conn) do
+    case :gen_tcp.send(conn, "REQ_AA\n") do
       {error, reason} -> {:reply, {:err, {error, reason}}}
       _ok -> {:reply, {:ok}, conn}
     end
