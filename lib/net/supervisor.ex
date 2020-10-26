@@ -15,6 +15,7 @@ defmodule Net.Supervisor do
   def init({opts, net_cfg}) do
     children = [
       Net.MsgBroker,
+      Net.Discovery.PeerList,
       {Net.Listener.Tcp, opts[:port]}
     ]
 

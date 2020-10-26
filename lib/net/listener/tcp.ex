@@ -35,5 +35,6 @@ defmodule Net.Listener.Tcp do
     Logger.info("connection opened to peer #{inspect(addr)}:#{port}")
 
     Net.MsgBroker.start_child(conn)
+    GenServer.call(Net.Discovery.PeerList, {:push, {addr, port}})
   end
 end
