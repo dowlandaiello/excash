@@ -6,7 +6,7 @@ defmodule Net.PeerWorker do
   use Supervisor
 
   def start_link(conn) do
-    Supervisor.start_link(__MODULE__, conn, name: __MODULE__)
+    Supervisor.start_link(__MODULE__, conn)
   end
 
   @impl true
@@ -27,7 +27,7 @@ defmodule Net.PeerWorker.Broadcaster do
   use GenServer
 
   def start_link(conn) do
-    GenServer.start_link(__MODULE__, conn, name: __MODULE__)
+    GenServer.start_link(__MODULE__, conn)
   end
 
   @impl true
@@ -41,8 +41,8 @@ defmodule Net.PeerWorker.Broadcaster do
   @impl true
   def handle_call({:publish_transaction, tx}, _from, conn) do
     case :gen_tcp.send(conn, "PUB_TX #{Core.Tx.str_repr(tx)}\n") do
+      :ok -> {:reply, {:ok}, conn}
       {error, reason} -> {:reply, {:err, {error, reason}}}
-      _ok -> {:reply, {:ok}, conn}
     end
   end
 
@@ -50,17 +50,17 @@ defmodule Net.PeerWorker.Broadcaster do
   @impl true
   def handle_call({:request_peerlist, max_peers}, _from, conn) do
     case :gen_tcp.send(conn, "REQ_PS #{max_peers}\n") do
+      :ok -> {:reply, {:ok}, conn}
       {error, reason} -> {:reply, {:err, {error, reason}}}
-      _ok -> {:reply, {:ok}, conn}
     end
   end
 
-  # Requests a list of addresses with records from the connected peers.
+  # Requests all recorded balances in chunks
   @impl true
-  def handle_call(:request_active_addresses, _from, conn) do
-    case :gen_tcp.send(conn, "REQ_AA\n") do
+  def handle_call(:request_all_balances, _from, conn) do
+    case :gen_tcp.send(conn, "REQ_AB\n") do
+      :ok -> {:reply, {:ok}, conn}
       {error, reason} -> {:reply, {:err, {error, reason}}}
-      _ok -> {:reply, {:ok}, conn}
     end
   end
 end
@@ -88,7 +88,7 @@ defmodule Net.PeerWorker.Listener do
             # Send them our peerlist by joining max_peers together with commas
             peerlist = GenServer.call(Net.Discovery.PeerList, :get)
 
-            :gen_tcp.send(
+            :ok = :gen_tcp.send(
               conn,
               "RES_PS #{
                 Enum.join(
@@ -152,8 +152,31 @@ defmodule Net.PeerWorker.Listener do
               end)
             end)
 
+          # HANDLE REQ: ALL BALANCES
+          ["REQ_AB", balances_per_chunk] ->
+            # Lazily load all recorded balances and send them over
+            Db.AccountRegistry.stream_balances()
+            |> Enum.every(
+              fn chunk ->
+                :ok = :gen_tcp.send(conn, "RES_AB #{Enum.join(chunk, ",")}\n")
+              end
+            )
+
+            # Done
+            :ok = :gen_tcp.send(conn, "DONE\n")
+
+          # HANDLE RES: ALL BALANCES
+          ["RES_AB", str_balances] -> 
+            IO.inspect str_balances
+            String.split(str_accts, ",") 
+            |> Stream.filter(&(&1 != ""))
+            |> Enum.each(&(IO.inspect &1))
+
+          # CLIENT IS DONE TALKING
+          "DONE" -> :ok
+
           _ ->
-            Logger.warn("unhandled request: #{msg}")
+            Logger.warn("unhandled request: #{String.trim msg}")
         end
 
         # When the socket is still open, keep reading

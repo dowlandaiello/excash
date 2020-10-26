@@ -24,4 +24,14 @@ defmodule Db.Shard do
   def handle_call({:get_balance, address}, _from, balances) do
     {:reply, balances[address], balances}
   end
+
+  @impl true
+  def handle_call(:active_addresses, _from, balances) do
+    {:reply, Map.keys(balances), balances}
+  end
+
+  @impl true
+  def handle_call(:all_balances, _from, balances) do
+    {:reply, Map.values(balances), balances}
+  end
 end
