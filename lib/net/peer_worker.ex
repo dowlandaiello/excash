@@ -127,7 +127,7 @@ defmodule Net.PeerWorker.Listener do
             end)
             # Add each new node to the peerlist
             |> Enum.each(fn [remote_addr, remote_port] ->
-              Task.async fn ->
+              Task.async(fn ->
                 Net.MsgBroker.start_child(remote_addr, remote_port)
 
                 GenServer.call(
@@ -135,8 +135,10 @@ defmodule Net.PeerWorker.Listener do
                   {:push, {remote_addr, remote_port}}
                 )
 
-                Logger.info("discovered new peer: #{remote_addr}:#{remote_port}")
-              end
+                Logger.info(
+                  "discovered new peer: #{remote_addr}:#{remote_port}"
+                )
+              end)
             end)
 
           _ ->
@@ -147,11 +149,13 @@ defmodule Net.PeerWorker.Listener do
         run(conn, {addr, port})
 
       {:error, :closed} ->
-        Logger.warn("connection closed by remote peer #{inspect(addr)}:#{port}; removing from peer list")
+        Logger.warn(
+          "connection closed by remote peer #{inspect(addr)}:#{port}; removing from peer list"
+        )
 
         GenServer.call(Net.Discovery.PeerList, {:remove, {addr, port}})
 
-        # Remove the peer from the peerlist
+      # Remove the peer from the peerlist
 
       e ->
         Logger.warn("#{inspect(e)}")
