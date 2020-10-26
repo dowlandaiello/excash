@@ -32,7 +32,7 @@ defmodule Net.Listener.Tcp do
 
   defp handle_conn(conn) do
     {:ok, [{addr, port}]} = :inet.peernames(conn)
-    Logger.info("connection opened to peer #{inspect addr}:#{port}")
+    Logger.info("connection opened to peer #{inspect(addr)}:#{port}")
 
     Net.MsgBroker.start_child(conn)
   end

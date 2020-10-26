@@ -3,7 +3,12 @@ defmodule Excashd do
 
   def main(args) do
     options = [
-      switches: [datadir: :string, port: :integer, n_shards: :integer, max_peers: :integer],
+      switches: [
+        datadir: :string,
+        port: :integer,
+        n_shards: :integer,
+        max_peers: :integer
+      ],
       aliases: [d: :datadir, p: :port, n: :n_shards]
     ]
 
@@ -37,7 +42,8 @@ defmodule Excashd do
           Logger.info("connecting to network...")
 
           Net.Discovery.Bootstrap.discover_extrinsic_peers(
-            safe_cfg.bootstrap_nodes
+            safe_cfg.bootstrap_nodes,
+            opts[:max_peers]
           )
 
           Logger.info("excashd core started successfully (#{inspect(sup)})!")

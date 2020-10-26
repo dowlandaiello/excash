@@ -23,7 +23,12 @@ defmodule Net.MsgBroker do
   Used to establish an outgoing connect (e.g., during bootstrapping).
   """
   def start_child(addr, port) do
-    case :gen_tcp.connect(to_charlist(addr), port, [:binary, :inet, active: false], 500) do
+    case :gen_tcp.connect(
+           to_charlist(addr),
+           port,
+           [:binary, :inet, active: false],
+           500
+         ) do
       {:ok, socket} -> start_child(socket)
       e -> e
     end
