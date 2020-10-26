@@ -71,7 +71,7 @@ defmodule Net.PeerWorker.Listener do
           # HANDLE REQUEST: PEERLIST
           ["REQ_PS", max_peers] ->
             Logger.info(
-              "peerlist requested by remote peer #{inspect(addr)}:#{port}"
+              "peerlist requested by remote peer #{Net.Discovery.PeerList.addr_to_str(addr, port)}"
             )
 
             # Send them our peerlist by joining max_peers together with commas
@@ -150,7 +150,7 @@ defmodule Net.PeerWorker.Listener do
 
       {:error, :closed} ->
         Logger.warn(
-          "connection closed by remote peer #{inspect(addr)}:#{port}; removing from peer list"
+          "connection closed by remote peer #{Net.Discovery.PeerList.addr_to_str(addr, port)}; removing from peer list"
         )
 
         GenServer.call(Net.Discovery.PeerList, {:remove, {addr, port}})
