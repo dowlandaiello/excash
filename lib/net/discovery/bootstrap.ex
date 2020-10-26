@@ -32,7 +32,7 @@ defmodule Net.Discovery.Bootstrap do
             )
 
           Logger.info(
-            "requesting updated peer list from bootstrap node: #{addr}:#{port}}"
+            "requesting updated peer list from bootstrap node: #{addr}:#{port}"
           )
 
           GenServer.call(
