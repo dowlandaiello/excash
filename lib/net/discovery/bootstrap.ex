@@ -35,11 +35,9 @@ defmodule Net.Discovery.Bootstrap do
             "requesting updated peer list from bootstrap node: #{addr}:#{port}}"
           )
 
-          IO.inspect(
-            GenServer.call(
-              elem(p_worker_broadcaster, 1),
-              {:request_peerlist, max_peers}
-            )
+          GenServer.call(
+            elem(p_worker_broadcaster, 1),
+            {:request_peerlist, max_peers}
           )
 
         e ->
