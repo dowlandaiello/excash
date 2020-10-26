@@ -71,12 +71,26 @@ defmodule Net.PeerWorker.Listener do
       {:ok, msg} ->
         case String.split(msg, " ") do
           # HANDLE REQUEST: PEERLIST
-          ["REQ_PS", max_peers] -> 
-            Logger.info("peerlist requested by remote peer #{inspect(addr)}:#{port}")
+          ["REQ_PS", max_peers] ->
+            Logger.info(
+              "peerlist requested by remote peer #{inspect(addr)}:#{port}"
+            )
 
             # Send them our peerlist by joining max_peers together with commas
             peerlist = GenServer.call(Net.Discovery.PeerList, :get)
-            :gen_tcp.send(conn, "RES_PS #{Enum.join(Stream.take(peerlist, String.to_integer(String.trim max_peers)), ",")}")
+
+            :gen_tcp.send(
+              conn,
+              "RES_PS #{
+                Enum.join(
+                  Stream.take(
+                    peerlist,
+                    String.to_integer(String.trim(max_peers))
+                  ),
+                  ","
+                )
+              }"
+            )
 
           # HANDLE RESP: PEERLIST
           ["RES_PS", peerlist] ->
@@ -86,32 +100,49 @@ defmodule Net.PeerWorker.Listener do
             # Convert node:address,address:jaosdf::123 to [node, address], [address:jaosdf, 123]
             String.trim(peerlist)
             |> String.split(",")
-            |> Stream.filter(& &1 != "")
+            |> Stream.filter(&(&1 != ""))
             # Remove duplicates
-            |> Stream.uniq
+            |> Stream.uniq()
             # Split ipv::6 and ipv:4 addresses by their respective delims
-            |> Stream.map(&(
+            |> Stream.map(
               # Use : as a delim for ipv4, and :: for ipv6
-              &1
-              |> String.split(if &1 |> String.graphemes |> Enum.count(fn elem -> elem == ":" end) > 1, do: "::", else: ":")
-              |> Net.Discovery.PeerList.addr_str_parts_to_addr
-            ))
+              &(&1
+                |> String.split(
+                  if &1
+                     |> String.graphemes()
+                     |> Enum.count(fn elem -> elem == ":" end) > 1,
+                     do: "::",
+                     else: ":"
+                )
+                |> Net.Discovery.PeerList.addr_str_parts_to_addr())
+            )
             # Filter out any peers that are clearly ourselves
-            |> Stream.filter(fn [remote_addr, remote_port] -> remote_addr != addr or remote_port != port end)
+            |> Stream.filter(fn [remote_addr, remote_port] ->
+              remote_addr != addr or remote_port != port
+            end)
             # And filter out any peers that are already connected
-            |> Stream.filter(fn [remote_addr, remote_port] -> !Enum.member?(current_peerlist, Net.Discovery.PeerList.addr_to_str(remote_addr, remote_port)) end)
+            |> Stream.filter(fn [remote_addr, remote_port] ->
+              !Enum.member?(
+                current_peerlist,
+                Net.Discovery.PeerList.addr_to_str(remote_addr, remote_port)
+              )
+            end)
             # Add each new node to the peerlist
             |> Enum.each(fn [remote_addr, remote_port] ->
-              GenServer.call(Net.Discovery.PeerList, {:push, {remote_addr, remote_port}})
+              GenServer.call(
+                Net.Discovery.PeerList,
+                {:push, {remote_addr, remote_port}}
+              )
+
               Logger.info("discovered new peer: #{remote_addr}:#{remote_port}")
             end)
 
-          _ -> Logger.warn("unhandled request: #{msg}")
+          _ ->
+            Logger.warn("unhandled request: #{msg}")
         end
 
         # When the socket is still open, keep reading
         run(conn, {addr, port})
-
 
       {:error, :closed} ->
         Logger.warn("connection closed by remote peer #{inspect(addr)}:#{port}")

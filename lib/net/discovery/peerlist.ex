@@ -19,7 +19,11 @@ defmodule Net.Discovery.PeerList do
   """
   @impl true
   def handle_call({:push, {addr, port}}, _from, peerlist) do
-    peerlist = [addr_to_str((if addr == "localhost", do: "127.0.0.1", else: addr), port) | peerlist]
+    peerlist = [
+      addr_to_str(if(addr == "localhost", do: "127.0.0.1", else: addr), port)
+      | peerlist
+    ]
+
     {:reply, peerlist, peerlist}
   end
 
@@ -39,7 +43,7 @@ defmodule Net.Discovery.PeerList do
   Converts the given peernames to a string.
   """
   def addr_to_str({a, b, c, d}, port) do
-    "#{a}.#{b}.#{c}.#{d}:#{port}" 
+    "#{a}.#{b}.#{c}.#{d}:#{port}"
   end
 
   # Conversion for ipv6 addrs
@@ -51,6 +55,6 @@ defmodule Net.Discovery.PeerList do
   Converts the given string peername parts to an address string.
   """
   def addr_str_parts_to_addr([addr, port]) do
-    [addr, String.to_integer port]
+    [addr, String.to_integer(port)]
   end
 end
