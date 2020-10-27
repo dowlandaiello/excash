@@ -27,7 +27,10 @@ defmodule Net.Supervisor do
       Enum.reduce(
         0..opts[:n_shards],
         children,
-        &[Supervisor.child_spec({Db.Shard, {%{"lol" => 0}}}, id: "Shard#{&1}") | &2]
+        &[
+          Supervisor.child_spec({Db.Shard, {%{"lol" => 0}}}, id: "Shard#{&1}")
+          | &2
+        ]
       )
 
     Supervisor.init(children, strategy: :one_for_one)

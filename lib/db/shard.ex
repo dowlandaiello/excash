@@ -32,6 +32,6 @@ defmodule Db.Shard do
 
   @impl true
   def handle_call(:all_balances, _from, balances) do
-    {:reply, Map.values(balances), balances}
+    {:reply, balances, balances}
   end
 end

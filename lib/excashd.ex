@@ -45,6 +45,7 @@ defmodule Excashd do
             safe_cfg.bootstrap_nodes,
             opts[:max_peers]
           )
+
           Db.Bootstrap.synchronize_state()
 
           Logger.info("excashd core started successfully (#{inspect(sup)})!")

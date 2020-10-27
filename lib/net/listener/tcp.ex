@@ -32,7 +32,12 @@ defmodule Net.Listener.Tcp do
 
   defp handle_conn(conn) do
     {:ok, [{addr, port}]} = :inet.peernames(conn)
-    Logger.info("connection opened to peer #{Net.Discovery.PeerList.addr_to_str(addr, port)}")
+
+    Logger.info(
+      "connection opened to peer #{
+        Net.Discovery.PeerList.addr_to_str(addr, port)
+      }"
+    )
 
     Net.MsgBroker.start_child(conn)
     GenServer.call(Net.Discovery.PeerList, {:push, {addr, port}})
