@@ -77,9 +77,14 @@ defmodule Net.PeerWorker.Listener do
   def run(conn, {addr, port}) do
     case :gen_tcp.recv(conn, 0) do
       {:ok, msg} ->
-        # Don't block next read, but do any work with the message that needs
-        # to be done
-        Task.async(fn -> handle_incoming_msg(conn, msg, addr, port) end)
+        msg
+        |> String.split("\n")
+        |> Stream.filter(&(&1 != ""))
+        |> Enum.each(fn msg ->
+          # Don't block next read, but do any work with the message that needs
+          # to be done
+          Task.async(fn -> handle_incoming_msg(conn, msg, addr, port) end)
+        end)
 
         # When the socket is still open, keep reading
         run(conn, {addr, port})
