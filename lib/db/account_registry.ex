@@ -21,4 +21,19 @@ defmodule Db.AccountRegistry do
     end)
     |> Stream.concat()
   end
+
+  @doc """
+  Calculates the number of shards managed locally - used as a caching mechanism.
+  """
+  def n_shards() do
+    # NOTE: The below constant should be updated to reflect the num of static
+    # children in supervisor.ex
+    Supervisor.count_children(Net.Supervisor) - 3
+  end
+
+  @doc """
+  Determines the index of the shard holding the given address.
+  """
+  def corresponding_shard(address, n_shards) do
+  end
 end

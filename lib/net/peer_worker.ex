@@ -71,10 +71,13 @@ defmodule Net.PeerWorker.Listener do
   require Logger
 
   def start_link([conn, {addr, port}]) do
-    Task.start_link(fn -> run(conn, {addr, port}) end)
+    # Cache the db shard count for use in msg handling
+    shard_count = Db.AccountRegistry.n_shards()
+
+    Task.start_link(fn -> run(conn, {addr, port}, {shard_count}) end)
   end
 
-  def run(conn, {addr, port}) do
+  def run(conn, {addr, port}, local_cfg) do
     case :gen_tcp.recv(conn, 0) do
       {:ok, msg} ->
         msg
@@ -83,11 +86,11 @@ defmodule Net.PeerWorker.Listener do
         |> Enum.each(fn msg ->
           # Don't block next read, but do any work with the message that needs
           # to be done
-          Task.async(fn -> handle_incoming_msg(conn, msg, addr, port) end)
+          Task.async(fn -> handle_incoming_msg(conn, msg, addr, port, local_cfg) end)
         end)
 
         # When the socket is still open, keep reading
-        run(conn, {addr, port})
+        run(conn, {addr, port}, local_cfg)
 
       {:error, :closed} ->
         Logger.warn(
@@ -104,7 +107,7 @@ defmodule Net.PeerWorker.Listener do
     end
   end
 
-  defp handle_incoming_msg(conn, msg, addr, port) do
+  defp handle_incoming_msg(conn, msg, addr, port, {n_shards}) do
     case msg
          |> String.trim()
          |> String.split(" ") do
@@ -202,7 +205,11 @@ defmodule Net.PeerWorker.Listener do
         str_balances
         |> String.split(",")
         |> Stream.filter(&(&1 != ""))
-        |> Enum.each(&IO.inspect(&1))
+        |> Enum.each(
+          fn {address, balance} ->
+            Db.AccountRegistry.corresponding_shard(address, shard_count)
+          end
+        )
 
       _ ->
         Logger.warn("unhandled request: #{String.trim(msg)}")
