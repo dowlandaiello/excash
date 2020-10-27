@@ -192,19 +192,12 @@ defmodule Net.PeerWorker.Listener do
           :ok = :gen_tcp.send(conn, "RES_AB #{Enum.join(chunk, ",")}\n")
         end)
 
-        # Done
-        :ok = :gen_tcp.send(conn, "DONE\n")
-
       # HANDLE RES: ALL BALANCES
       ["RES_AB", str_balances] ->
         str_balances
         |> String.split(",")
         |> Stream.filter(&(&1 != ""))
         |> Enum.each(&IO.inspect(&1))
-
-      # CLIENT IS DONE TALKING
-      ["DONE"] ->
-        :ok
 
       _ ->
         Logger.warn("unhandled request: #{String.trim(msg)}")
