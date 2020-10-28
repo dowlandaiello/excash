@@ -17,7 +17,7 @@ defmodule Db.ShardRegistry do
              |> fn unique_chars ->
                 fn key -> 
                   key
-                  |> String.slice(1..unique_chars)
+                  |> String.slice(0, unique_chars)
                   |> String.codepoints
                   |> Enum.reduce(fn c, acc -> acc + ?c)
                 end
