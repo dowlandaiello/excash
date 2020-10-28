@@ -6,6 +6,9 @@ defmodule Core.Tx do
             timestamp: :calendar.universal_time(),
             signature: nil
 
+  # Base58 sha256 hash
+  ADDRESS_LENGTH = 44
+
   @doc """
   Derives a alphanumeric representation of the given transaction.
   """

@@ -17,22 +17,27 @@ defmodule Net.Supervisor do
       Net.MsgBroker,
       Net.Discovery.PeerList,
       {Net.Listener.Tcp, opts[:port]}
+      {Db.ShardRegistry, opts[:n_shards]}
     ]
 
     # Spawn a worker process to serve each shard, where each shard is a process
     # with an id of Shard${i}
     Logger.info("spawning #{opts[:n_shards]} shard workers...")
 
-    children =
+    shards =
       Enum.reduce(
         0..opts[:n_shards],
-        children,
+        [],
         &[
           Supervisor.child_spec({Db.Shard, {%{"lol" => 0}}}, id: "Shard#{&1}")
           | &2
         ]
       )
 
-    Supervisor.init(children, strategy: :one_for_one)
+    # Keep track of the shards with ShardRegistry
+    init_res = Supervisor.init({children | shards}, strategy: :one_for_one)
+    GenServer.call(Db.ShardRegistry, {:register_shards, shards})
+
+    init_res
   end
 end
