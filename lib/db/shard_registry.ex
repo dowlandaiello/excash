@@ -12,47 +12,40 @@ defmodule Db.ShardRegistry do
 
   @impl true
   def init(n_shards) do
-    hasher = Math.log(n_shards, 58)
-             |> ceil
-             |> fn unique_chars ->
-                fn key -> 
-                  key
-                  |> String.slice(0, unique_chars)
-                  |> String.codepoints
-                  |> Enum.reduce(fn c, acc -> acc + ?c)
-                end
-              end
+    unique_chars =
+      Math.log(n_shards, 58)
+      |> ceil
+
+    hasher = fn key ->
+      key
+      |> String.slice(0, unique_chars)
+      |> String.codepoints()
+      |> Enum.reduce(fn ?c, acc -> acc + ?c end)
     end
 
     {:ok, {[], n_shards, hasher}}
   end
 
   @impl true
-  def handle_call({:register_shards, new_shards}, _from, {shards, n_shards, hasher}) do
-    {:noreply, {new_shards, n_shards}}
+  def handle_call(
+        {:register_shards, new_shards},
+        _from,
+        {_shards, n_shards, hasher}
+      ) do
+    {:noreply, {new_shards, n_shards, hasher}}
   end
 
   @impl true
   def handle_call({:shard_for_addr, address}, _from, {shards, n_shards, hasher}) do
-    {:reply, shards[hasher(address) % n_shards]}
+    {:reply, shards[rem(hasher.(address), n_shards)],
+     {shards, n_shards, hasher}}
   end
 
-  @doc """
-  Creates a stream over all balances in existence.
-  """
-  def stream_balances() do
-    Net.Supervisor
-    |> Supervisor.which_children()
-    |> Stream.filter(fn worker ->
-      worker
-      |> elem(0)
-      |> (&(is_binary(&1) and String.contains?(&1, "Shard"))).()
-    end)
-    |> Stream.map(fn worker ->
-      worker
-      |> elem(1)
-      |> GenServer.call(:all_balances)
-    end)
-    |> Stream.concat()
+  @impl true
+  def handle_call({:balance_stream}, _from, {shards, n_shards, hasher}) do
+    {:reply,
+     shards
+     |> Stream.map(&GenServer.call(&1, {:all_balances}))
+     |> Stream.concat(), {shards, n_shards, hasher}}
   end
 end

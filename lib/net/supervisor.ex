@@ -16,7 +16,7 @@ defmodule Net.Supervisor do
     children = [
       Net.MsgBroker,
       Net.Discovery.PeerList,
-      {Net.Listener.Tcp, opts[:port]}
+      {Net.Listener.Tcp, opts[:port]},
       {Db.ShardRegistry, opts[:n_shards]}
     ]
 
@@ -29,13 +29,14 @@ defmodule Net.Supervisor do
         0..opts[:n_shards],
         [],
         &[
-          Supervisor.child_spec({Db.Shard, {%{"lol" => 0}}}, id: "Shard#{&1}")
+          Supervisor.child_spec({Db.Shard, {%{}}}, id: "Shard#{&1}")
           | &2
         ]
       )
 
     # Keep track of the shards with ShardRegistry
-    init_res = Supervisor.init({children | shards}, strategy: :one_for_one)
+    init_res = Supervisor.init(Enum.concat(children, shards), strategy: :one_for_one)
+    IO.puts 
     GenServer.call(Db.ShardRegistry, {:register_shards, shards})
 
     init_res

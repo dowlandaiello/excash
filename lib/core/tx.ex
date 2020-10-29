@@ -7,7 +7,9 @@ defmodule Core.Tx do
             signature: nil
 
   # Base58 sha256 hash
-  ADDRESS_LENGTH = 44
+  def address_length do
+    44
+  end
 
   @doc """
   Derives a alphanumeric representation of the given transaction.

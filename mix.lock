@@ -1,3 +1,4 @@
 %{
+  "math": {:hex, :math, "0.4.0", "301132614d02f0d17c71ff20a7b260ff542606403972e261ec25dc79d7d17558", [:mix], [], "hexpm", "26342cb1ed14a52c5fd19e93edaf426d638cdf9d2016fc24c48905024e22c9cf"},
   "poison": {:hex, :poison, "3.1.0", "d9eb636610e096f86f25d9a46f35a9facac35609a7591b3be3326e99a0484665", [:mix], [], "hexpm", "fec8660eb7733ee4117b85f55799fd3833eb769a6df71ccf8903e8dc5447cfce"},
 }
