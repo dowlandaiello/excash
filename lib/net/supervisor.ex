@@ -35,8 +35,10 @@ defmodule Net.Supervisor do
       )
 
     # Keep track of the shards with ShardRegistry
-    init_res = Supervisor.init(Enum.concat(children, shards), strategy: :one_for_one)
-    IO.puts 
+    init_res =
+      Supervisor.init(Enum.concat(children, shards), strategy: :one_for_one)
+
+    IO.puts()
     GenServer.call(Db.ShardRegistry, {:register_shards, shards})
 
     init_res
