@@ -23,7 +23,7 @@ defmodule Db.ShardRegistry do
       |> Enum.reduce(fn ?c, acc -> acc + ?c end)
     end
 
-    {:ok, {[], n_shards, hasher}}
+    {:ok, {%{}, n_shards, hasher}}
   end
 
   @impl true
@@ -32,12 +32,12 @@ defmodule Db.ShardRegistry do
         _from,
         {_shards, n_shards, hasher}
       ) do
-    {:noreply, {new_shards, n_shards, hasher}}
+    {:reply, new_shards, {new_shards, n_shards, hasher}}
   end
 
   @impl true
   def handle_call({:shard_for_addr, address}, _from, {shards, n_shards, hasher}) do
-    {:reply, shards[rem(hasher.(address), n_shards)],
+    {:reply, shards |> elem(rem(hasher.(address), n_shards)),
      {shards, n_shards, hasher}}
   end
 
@@ -45,7 +45,21 @@ defmodule Db.ShardRegistry do
   def handle_call({:balance_stream}, _from, {shards, n_shards, hasher}) do
     {:reply,
      shards
-     |> Stream.map(&GenServer.call(&1, {:all_balances}))
+     |> Map.values()
+     |> Stream.map(&GenServer.call(&1, :all_balances))
      |> Stream.concat(), {shards, n_shards, hasher}}
+  end
+
+  @doc """
+  Gets a list of shard workers on the local node.
+  """
+  def walk_all_shards() do
+    Net.Supervisor
+    |> Supervisor.which_children()
+    |> Stream.filter(&(elem(&1, 0) |> is_binary))
+    |> Stream.filter(&(elem(&1, 0) |> String.contains?("Shard")))
+    |> Stream.map(&elem(&1, 1))
+    |> Stream.with_index()
+    |> Enum.reduce(%{}, fn {x, i}, acc -> acc |> Map.put(i, x) end)
   end
 end

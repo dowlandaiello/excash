@@ -39,6 +39,10 @@ defmodule Excashd do
           # Start the node supervisor
           {:ok, sup} = Net.Supervisor.start_link({opts, safe_cfg})
 
+          # Register shards for later use
+          shards = Db.ShardRegistry.walk_all_shards()
+          GenServer.call(Db.ShardRegistry, {:register_shards, shards})
+
           Logger.info("connecting to network...")
 
           Net.Discovery.Bootstrap.discover_extrinsic_peers(

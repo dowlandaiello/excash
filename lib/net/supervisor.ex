@@ -24,23 +24,16 @@ defmodule Net.Supervisor do
     # with an id of Shard${i}
     Logger.info("spawning #{opts[:n_shards]} shard workers...")
 
-    shards =
+    children =
       Enum.reduce(
         0..opts[:n_shards],
-        [],
+        children,
         &[
           Supervisor.child_spec({Db.Shard, {%{}}}, id: "Shard#{&1}")
           | &2
         ]
       )
 
-    # Keep track of the shards with ShardRegistry
-    init_res =
-      Supervisor.init(Enum.concat(children, shards), strategy: :one_for_one)
-
-    IO.puts()
-    GenServer.call(Db.ShardRegistry, {:register_shards, shards})
-
-    init_res
+    Supervisor.init(children, strategy: :one_for_one)
   end
 end
