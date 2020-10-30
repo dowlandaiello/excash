@@ -186,6 +186,7 @@ defmodule Net.PeerWorker.Listener do
 
       # HANDLE REQ: ALL BALANCES
       ["REQ_AB", balances_per_chunk] ->
+      Logger.info("global state requested in #{balances_per_chunk}ab chunks by remote peer #{Net.Discovery.PeerList.addr_to_str(addr, port)}")
         balances_per_chunk =
           balances_per_chunk
           |> String.trim()
@@ -204,7 +205,8 @@ defmodule Net.PeerWorker.Listener do
         str_balances
         |> String.split(",")
         |> Stream.filter(&(&1 != ""))
-        |> Enum.each(fn {address, balance} ->
+        |> Stream.map(&(String.split(&1, ":")))
+        |> Enum.each(fn [address, balance] ->
           GenServer.call(Db.ShardRegistry, {:shard_for_addr, address})
           |> GenServer.call({:put_balance, address, balance})
         end)

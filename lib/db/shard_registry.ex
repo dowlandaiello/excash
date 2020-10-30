@@ -20,7 +20,7 @@ defmodule Db.ShardRegistry do
       key
       |> String.slice(0, unique_chars)
       |> String.codepoints()
-      |> Enum.reduce(fn ?c, acc -> acc + ?c end)
+      |> Enum.reduce(0, fn <<c::utf8>>, acc -> acc + c end)
     end
 
     {:ok, {%{}, n_shards, hasher}}
@@ -37,7 +37,7 @@ defmodule Db.ShardRegistry do
 
   @impl true
   def handle_call({:shard_for_addr, address}, _from, {shards, n_shards, hasher}) do
-    {:reply, shards |> elem(rem(hasher.(address), n_shards)),
+    {:reply, shards[rem(hasher.(address), n_shards)],
      {shards, n_shards, hasher}}
   end
 

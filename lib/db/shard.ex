@@ -17,7 +17,8 @@ defmodule Db.Shard do
 
   @impl true
   def handle_call({:put_balance, address, balance}, _from, balances) do
-    {:noreply, Map.put(balances, address, balance)}
+    new_balances = Map.put(balances, address, balance)
+    {:reply, new_balances, new_balances}
   end
 
   @impl true

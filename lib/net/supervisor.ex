@@ -29,7 +29,7 @@ defmodule Net.Supervisor do
         0..opts[:n_shards],
         children,
         &[
-          Supervisor.child_spec({Db.Shard, {%{}}}, id: "Shard#{&1}")
+          Supervisor.child_spec({Db.Shard, {%{"lol" => 0}}}, id: "Shard#{&1}")
           | &2
         ]
       )
